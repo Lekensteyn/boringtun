@@ -5,6 +5,7 @@ pub mod errors;
 pub mod handshake;
 pub mod rate_limiter;
 
+mod key_debug;
 mod session;
 mod tests;
 mod timers;

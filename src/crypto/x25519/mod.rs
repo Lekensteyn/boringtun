@@ -178,6 +178,10 @@ impl X25519EphemeralKey {
     pub fn shared_key(&self, peer_public: &X25519PublicKey) -> Result<[u8; 32], WireGuardError> {
         self.internal.shared_key(peer_public)
     }
+
+    pub fn as_bytes(&self) -> &[u8] {
+        self.internal.as_bytes()
+    }
 }
 
 impl FromStr for X25519PublicKey {

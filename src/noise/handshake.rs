@@ -6,6 +6,7 @@ use crate::crypto::blake2s::Blake2s;
 use crate::crypto::chacha20poly1305::ChaCha20Poly1305;
 use crate::crypto::x25519::*;
 use crate::noise::errors::WireGuardError;
+use crate::noise::key_debug::write_key_for_debug;
 use crate::noise::make_array;
 use crate::noise::session::Session;
 use std::sync::Arc;
@@ -377,6 +378,8 @@ impl Handshake {
             packet.encrypted_static,
             hash
         )?;
+        let _ = write_key_for_debug("LOCAL_STATIC_PRIVATE_KEY", &self.params.static_private.as_bytes());
+        let _ = write_key_for_debug("REMOTE_STATIC_PUBLIC_KEY", &peer_static_public_decrypted);
 
         self.params
             .peer_static_public
@@ -592,6 +595,10 @@ impl Handshake {
         hash = HASH!(hash, self.params.peer_static_public.as_bytes());
         // initiator.ephemeral_private = DH_GENERATE()
         let ephemeral_private = X25519EphemeralKey::new();
+        let _ = write_key_for_debug("LOCAL_STATIC_PRIVATE_KEY", &self.params.static_private.as_bytes());
+        let _ = write_key_for_debug("REMOTE_STATIC_PUBLIC_KEY", &self.params.peer_static_public.as_bytes());
+        let _ = write_key_for_debug("LOCAL_EPHEMERAL_PRIVATE_KEY", ephemeral_private.as_bytes());
+        let _ = write_key_for_debug("PRESHARED_KEY", &self.params.preshared_key.unwrap_or([0u8; 32]));
         // msg.message_type = 1
         // msg.reserved_zero = { 0, 0, 0 }
         message_type.copy_from_slice(&super::HANDSHAKE_INIT.to_le_bytes());
@@ -717,6 +724,9 @@ impl Handshake {
         hash = HASH!(hash, temp2);
         // msg.encrypted_nothing = AEAD(key, 0, [empty], responder.hash)
         SEAL!(encrypted_nothing, key, 0, [], hash);
+
+        let _ = write_key_for_debug("LOCAL_EPHEMERAL_PRIVATE_KEY", ephemeral_private.as_bytes());
+        let _ = write_key_for_debug("PRESHARED_KEY", &self.params.preshared_key.unwrap_or([0u8; 32]));
 
         // Derive keys
         // temp1 = HMAC(initiator.chaining_key, [empty])
